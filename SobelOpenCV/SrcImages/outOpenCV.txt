@@ -1,0 +1,6 @@
+%YAML:1.0
+matName: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: u
+   data: [ 184, 152, 90, 63, 229, 45, 129, 42, 127 ]

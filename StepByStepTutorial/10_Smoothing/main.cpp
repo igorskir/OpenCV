@@ -9,27 +9,144 @@ using namespace cv;
 
 /// Global Variables
 int DELAY_CAPTION = 2000;
-int MAX_KERNEL_LENGTH = 21;
 
 /// Function headers
-int DisplayImage(Mat dstImage, string windowName, string windowText, int delay);
-int HomogeneousSmoothing(Mat srcImage);
+int DisplayImage(const Mat &dstImage, string windowName, string windowText, int delay);
 Mat LoadImage(string imgPath);
 int ShowImageHistogram(Mat image);
+void ShowMenu();
+
+void StartImageProcessing(const Mat& srcImage);
+int HomogeneousSmoothing(const Mat &srcImage, int ksize);
+int GaussianSmoothing(const Mat& srcImage, int ksize);
+int MedianSmoothing(const Mat &srcImage, int ksize);
+int BilateralSmoothing(const Mat &srcImage, int ksize);
+
 
 
 int main(int argc, char *argv[])
 {
+    cout << "Hello! It's image smoothing programm!" << endl;
+    cout << "-------------------------------------" << endl;
 
-    Mat inputImage = LoadImage("..\\InputImages\\girl.jpg");
+    char choice = '4';
+    Mat srcImage;
+    do
+    {
+        switch(choice)
+        {
+            case '1':
+                srcImage = LoadImage("..\\InputImages\\cat.jpg");
+                break;
 
-    if( HomogeneousSmoothing(inputImage) != 0 ) { return 0; }
 
+            case '2':
+                DisplayImage(srcImage,"Original image","",1);
+                waitKey();
+                break;
+
+            case '3':
+                StartImageProcessing(srcImage);
+                break;
+
+            case '4':
+                ShowMenu();
+                break;
+
+            case '5':
+                return 0;
+                break;
+
+            default:
+                cout << "You've chosen incorrect number." << endl;
+                cout << "Do you want close app? Y/N:";
+                char isQuit;
+                cin >> isQuit;
+                if (isQuit == 'Y' || isQuit =='y')
+                    return 0;
+                break;
+        }
+        cout << "Enter your selection: ";
+        cin >> choice;
+    } while (choice != '5');
 
     waitKey(0);
     return 0;
 }
 
+
+void StartImageProcessing(const Mat& srcImage)
+{
+    if(!srcImage.data )                              // Check for invalid input
+       {
+           cout <<  "Sorry, could not open or find the source image" << endl ;
+           return;
+       }
+
+
+    int ksize = 3;
+    cout << "\nChoose method please:" << endl
+         << "1. Homogeneous Smoothing;" << endl
+         << "2. Gaussian Smoothing;" << endl
+         << "3. Median Smoothing;" << endl
+         << "4. Bilateral Smoothing;" << endl;
+
+    char mchoice;
+
+    cout << "Enter filter nubmer please: ";
+    cin >> mchoice;
+
+    switch(mchoice)
+    {
+        case '1':
+            cout << "Input the kernel size plese: (odd number) ";
+            cin >> ksize;
+            if (ksize %2 == 0)
+            {
+                cout << "Bad input data. Kernel size must be odd" <<endl;
+                break;
+            }
+            HomogeneousSmoothing(srcImage, ksize);
+            break;
+
+        case '2':
+            cout << "Input the kernel size plese: (odd number) ";
+            cin >> ksize;
+            if (ksize %2 == 0)
+            {
+                cout << "Bad input data. Kernel size must be odd" <<endl;
+                break;
+            }
+            GaussianSmoothing(srcImage,ksize);
+            break;
+
+        case '3':
+            cout << "Input the kernel size plese: (odd number) ";
+            cin >> ksize;
+            if (ksize %2 == 0)
+            {
+                cout << "Bad input data. Kernel size must be odd" <<endl;
+                break;
+            }
+            MedianSmoothing(srcImage, ksize);
+            break;
+
+        case '4':
+            cout << "Input the kernel size plese: (odd number) ";
+            cin >> ksize;
+            if (ksize %2 == 0)
+            {
+                cout << "Bad input data. Kernel size must be odd" <<endl;
+                break;
+            }
+            BilateralSmoothing(srcImage, ksize);
+            break;
+
+        default:
+            cout << "You've chosen incorrect number." << endl;
+            break;
+    }
+}
 
 Mat LoadImage(string imgPath)
 {
@@ -41,39 +158,122 @@ Mat LoadImage(string imgPath)
            return src;
        }
 
+    cout << "The image is successfully loaded!" << endl;
     return src;
-
 }
 
-int HomogeneousSmoothing(Mat srcImage)
+int HomogeneousSmoothing(const Mat& srcImage, int ksize)
 {
-    namedWindow("Original image", WINDOW_AUTOSIZE);
-
-    imshow("Original image",srcImage);
-
     Mat dstImage;
 
-    string tempText;
+    string headerText;
     string strName;
+    string strKernSize = std::to_string(ksize);
 
-    for (int i = 1; i <= MAX_KERNEL_LENGTH; i=i+2)
-    {
-        tempText = "Kernel Size: " +  std::to_string(i) + " x " + std::to_string(i);
+//    for (int i = 1; i <= MAX_KERNEL_LENGTH; i=i+2)
+//    {
 
-        blur(srcImage,dstImage,Size(i,i));
+    headerText = "Kernel Size: " +  strKernSize + " x " + strKernSize;
 
-        if( DisplayImage(dstImage,"Smoothed image", tempText, DELAY_CAPTION)) { return 0; }
+    blur(srcImage,dstImage,Size(ksize,ksize));
 
-        //ShowImageHistogram(dstImage);
+    DisplayImage(dstImage,"Smoothed image", headerText, 1);
 
-        strName = "Images\\Image_Kernel_" + std::to_string(i) + "px.jpg";
+    //ShowImageHistogram(dstImage);
 
-        imwrite( strName, dstImage );
-    }
+    strName = "Images\\homo_kern_" + strKernSize + "px.jpg";
+
+    imwrite( strName, dstImage );
+    cout << "Image was succesfully writed to disk! File name: " << strName << endl;
+
+//    }
     return 0;
 }
 
-int DisplayImage(Mat dstImage, string windowName = "Window", string windowText = "", int delay = 0)
+int GaussianSmoothing(const Mat &srcImage, int ksize)
+{
+    Mat dstImage;
+
+    string headerText;
+    string strName;
+    string strKernSize = std::to_string(ksize);
+
+//    for (int i = 1; i <= MAX_KERNEL_LENGTH; i=i+2)
+//    {
+
+    headerText = "Kernel Size: " +  strKernSize + " x " + strKernSize;
+
+    GaussianBlur(srcImage,dstImage,Size(ksize,ksize),0,0);
+
+    DisplayImage(dstImage,"Gaussian smoothed image", headerText, 1);
+
+    //ShowImageHistogram(dstImage);
+
+    strName = "Images\\Gaus_kern_" + strKernSize + "px.jpg";
+
+    imwrite( strName, dstImage );
+    cout << "Image was succesfully writed to disk! File name: " << strName << endl;
+//    }
+    return 0;
+}
+
+int MedianSmoothing(const Mat &srcImage, int ksize)
+{
+    Mat dstImage;
+
+    string headerText;
+    string strName;
+    string strKernSize = std::to_string(ksize);
+
+//    for (int i = 1; i <= MAX_KERNEL_LENGTH; i=i+2)
+//    {
+
+    headerText = "Kernel Size: " +  strKernSize + " x " + strKernSize;
+
+    medianBlur(srcImage,dstImage,ksize);
+
+    DisplayImage(dstImage,"Median smoothed image", headerText, 1);
+
+    //ShowImageHistogram(dstImage);
+
+    strName = "Images\\median_kern_" + strKernSize + "px.jpg";
+
+    imwrite( strName, dstImage );
+    cout << "Image was succesfully writed to disk! File name: " << strName << endl;
+//    }
+    return 0;
+}
+
+int BilateralSmoothing(const Mat &srcImage, int ksize)
+{
+    Mat dstImage;
+
+    string headerText;
+    string strName;
+    string strKernSize = std::to_string(ksize);
+
+//    for (int i = 1; i <= MAX_KERNEL_LENGTH; i=i+2)
+//    {
+
+    headerText = "Kernel Size: " +  strKernSize + " x " + strKernSize;
+
+    const uint Sr = 90;
+    bilateralFilter(srcImage,dstImage,ksize,Sr,Sr);
+
+    DisplayImage(dstImage,"Bilateral smoothed image", headerText, 1);
+
+    //ShowImageHistogram(dstImage);
+
+    strName = "Images\\bilat_kern_" + strKernSize + "Sr="+ std::to_string(Sr)+ "px.jpg";
+
+    imwrite( strName, dstImage );
+    cout << "Image was succesfully writed to disk! File name: " << strName << endl;
+//    }
+    return 0;
+}
+
+
+int DisplayImage(const Mat& dstImage, string windowName = "Window", string windowText = "", int delay = 0)
 {
     if(!dstImage.data )                              // Check for invalid input
        {
@@ -86,9 +286,7 @@ int DisplayImage(Mat dstImage, string windowName = "Window", string windowText =
     putText(dstImage,windowText,Point(dstImage.cols/4,dstImage.rows/8), CV_FONT_HERSHEY_COMPLEX, 0.5, Scalar(255,255,255));
 
     imshow(windowName, dstImage);
-    int c = waitKey( delay );
-    if (c >=0) {return -1;}
-
+    //waitKey( delay );
     return 0;
 }
 
@@ -148,6 +346,17 @@ int ShowImageHistogram(Mat image)
     return 0;
 }
 
+
+void ShowMenu()
+{
+    cout << "\nChoose the operation number please:" << endl
+         << "1. Load image from disk;" << endl
+         << "2. Show original image;" << endl
+         << "3. Apply smooothing filter;" << endl
+         << "4. Show menu;" << endl
+         << "5. Quit." << endl
+         << "-----------------------------------" << endl;
+}
 
 
 
